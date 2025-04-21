@@ -1,5 +1,7 @@
 plugins {
     id 'java'
+    id 'io.qameta.allure' version '2.12.0'
+    id 'io.freefair.lombok' version '8.13.1'
 }
 
 group = 'io.reportportal.demo'
@@ -9,11 +11,108 @@ repositories {
     mavenCentral()
 }
 
+java {
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
+}
+
+compileJava.options.encoding = 'UTF-8'
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+
+ext {
+    allureVersion = '2.27.0'
+    junitVersion = '5.10.2'
+    sl4jVersion = '2.0.13'
+    restAssuredVersion = '5.4.0'
+    seleniumVersion = '4.31.0'
+    aspectjVersion = '1.9.22'
+    jacksonDatabindVersion = '2.17.2'
+}
+
 dependencies {
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
+
+    implementation("org.seleniumhq.selenium:selenium-java:${seleniumVersion}")
+
+    implementation("io.rest-assured:rest-assured:${restAssuredVersion}")
+
+    testImplementation("org.slf4j:slf4j-simple:${sl4jVersion}")
+
+    implementation("org.junit.jupiter:junit-jupiter-api:${junitVersion}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${junitVersion}")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:${junitVersion}")
+    testImplementation platform("org.junit:junit-bom:${junitVersion}")
+
+    implementation platform("io.qameta.allure:allure-bom:${allureVersion}")
+    implementation("io.qameta.allure:allure-model:${allureVersion}")
+    implementation("io.qameta.allure:allure-junit5-assert:${allureVersion}")
+    implementation("io.qameta.allure:allure-rest-assured:${allureVersion}")
+    testImplementation("io.qameta.allure:allure-junit5:${allureVersion}")
+    testRuntimeOnly("org.aspectj:aspectjweaver:${aspectjVersion}")
+
+    implementation("com.fasterxml.jackson.core:jackson-databind:${jacksonDatabindVersion}")
 }
 
 test {
     useJUnitPlatform()
+    jvmArgs '-Xmx1g'
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "short"
+    }
+    description = 'Запускает все тесты'
+}
+
+tasks.named('allureServe') {
+    group = 'reportportal tasks'
+    description = 'Запуск allure отчётов'
+}
+
+tasks.register("runAllTests", Test) {
+    group = "reportportal tasks"
+    description = "Запускает все тесты"
+    useJUnitPlatform()
+}
+
+tasks.register("runAllWithReport", Test) {
+    group = "reportportal tasks"
+    description = "Запуск всех тестов с генерацией Allure отчёта"
+    useJUnitPlatform()
+    finalizedBy 'allureReport'
+}
+
+tasks.register("runApiTests", Test) {
+    group = "reportportal tasks"
+    description = "Запуск только API тестов (@Tag(\"api\"))"
+    useJUnitPlatform {
+        includeTags("api")
+    }
+}
+
+tasks.register("runApiTestsWithReport", Test) {
+    group = "reportportal tasks"
+    description = "Запуск API тестов с генерацией Allure отчёта"
+    useJUnitPlatform {
+        includeTags("api")
+    }
+    finalizedBy 'allureReport'
+}
+
+tasks.register("runUiTests", Test) {
+    group = "reportportal tasks"
+    description = "Запуск только UI тестов (@Tag(\"web\"))"
+    useJUnitPlatform {
+        includeTags("web")
+    }
+}
+
+tasks.register("runUiTestsWithReport", Test) {
+    group = "reportportal tasks"
+    description = "Запуск UI тестов с генерацией Allure отчёта"
+    useJUnitPlatform {
+        includeTags("web")
+    }
+    finalizedBy 'allureReport'
 }
