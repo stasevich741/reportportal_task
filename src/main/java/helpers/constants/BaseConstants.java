@@ -4,7 +4,7 @@ package helpers.constants;
  * Класс для хранения констант
  */
 public class BaseConstants {
-    public static String BASE_URL = "//demo.reportportal.io/";
+    public static String BASE_URL = "https://demo.reportportal.io";
     public static String LOGIN_URL = "https://demo.reportportal.io/ui/#login/";
 
     public static String LOGIN = "default";

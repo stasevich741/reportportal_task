@@ -29,6 +29,7 @@ ext {
     restAssuredVersion = '5.4.0'
     seleniumVersion = '4.31.0'
     aspectjVersion = '1.9.22'
+    jacksonDatabindVersion = '2.17.2'
 }
 
 dependencies {
@@ -50,11 +51,13 @@ dependencies {
     implementation("io.qameta.allure:allure-rest-assured:${allureVersion}")
     testImplementation("io.qameta.allure:allure-junit5:${allureVersion}")
     testRuntimeOnly("org.aspectj:aspectjweaver:${aspectjVersion}")
+
+    implementation("com.fasterxml.jackson.core:jackson-databind:${jacksonDatabindVersion}")
 }
 
 test {
     useJUnitPlatform()
-
+    jvmArgs '-Xmx1g'
     testLogging {
         events "passed", "skipped", "failed"
         exceptionFormat "short"
@@ -63,6 +66,53 @@ test {
 }
 
 tasks.named('allureServe') {
-    group = 'tasks'
+    group = 'reportportal tasks'
     description = 'Запуск allure отчётов'
+}
+
+tasks.register("runAllTests", Test) {
+    group = "reportportal tasks"
+    description = "Запускает все тесты"
+    useJUnitPlatform()
+}
+
+tasks.register("runAllWithReport", Test) {
+    group = "reportportal tasks"
+    description = "Запуск всех тестов с генерацией Allure отчёта"
+    useJUnitPlatform()
+    finalizedBy 'allureReport'
+}
+
+tasks.register("runApiTests", Test) {
+    group = "reportportal tasks"
+    description = "Запуск только API тестов (@Tag(\"api\"))"
+    useJUnitPlatform {
+        includeTags("api")
+    }
+}
+
+tasks.register("runApiTestsWithReport", Test) {
+    group = "reportportal tasks"
+    description = "Запуск API тестов с генерацией Allure отчёта"
+    useJUnitPlatform {
+        includeTags("api")
+    }
+    finalizedBy 'allureReport'
+}
+
+tasks.register("runUiTests", Test) {
+    group = "reportportal tasks"
+    description = "Запуск только UI тестов (@Tag(\"web\"))"
+    useJUnitPlatform {
+        includeTags("web")
+    }
+}
+
+tasks.register("runUiTestsWithReport", Test) {
+    group = "reportportal tasks"
+    description = "Запуск UI тестов с генерацией Allure отчёта"
+    useJUnitPlatform {
+        includeTags("web")
+    }
+    finalizedBy 'allureReport'
 }
